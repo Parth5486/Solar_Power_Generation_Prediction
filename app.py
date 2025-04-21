@@ -4,18 +4,24 @@ import numpy as np
 import time 
 import pandas as pd
 
-# Load Model, Encoder & Scaler
+# Load Model
 model = joblib.load('solar_power_generation_xgbr_model.pkl')
 
-# Custom Styling
-
+# Set Page Config
 st.set_page_config(page_title="Solar Power Generation Predictor", layout="centered")
-st.image("https://cdn.shopify.com/s/files/1/0493/9834/9974/files/can-solar-generators-power-a-calculator.jpg?v=1685590896")
 
-# App Title
-st.markdown("<h1>Solar Power Generation Predictor</h1>", unsafe_allow_html=True)
+# Custom Header Image
+st.image("https://cdn.shopify.com/s/files/1/0493/9834/9974/files/can-solar-generators-power-a-calculator.jpg?v=1685590896", use_column_width=True)
 
-# Input Section
+# Title Section
+st.markdown("""
+    <div style='text-align: center; padding: 10px;'>
+        <h1 style='color: #ff9933;'>Solar Power Generation Predictor</h1>
+        <p style='font-size: 18px;'>Estimate solar power output using real-time weather data</p>
+    </div>
+""", unsafe_allow_html=True)
+
+# Input Form
 st.markdown("---")
 st.markdown("### 🌤️ Input Environmental Conditions")
 st.markdown("Use the sliders and number inputs below to provide current weather conditions for solar power prediction.")
@@ -31,18 +37,17 @@ with st.container():
 
     with col2:
         temp = st.number_input("🌡️ Temperature (°C)", min_value=42, max_value=78, step=1)
-        wind_direction = st.number_input("🧭 Wind Direction (1-32)", min_value=1, max_value=32, step=1)
+        wind_direction = st.number_input("🧽 Wind Direction (1-32)", min_value=1, max_value=32, step=1)
         humidity = st.number_input("💧 Humidity (%)", min_value=0, max_value=100, step=1)
         avg_pressure = st.slider("🔽 Avg Pressure (inHg)", min_value=29.64, max_value=30.39, step=0.1)
 
 st.markdown("---")
 
+# Feature Engineering
+wind_dir_sine = np.sin(2 * np.pi * wind_direction / 360)
+wind_dir_cosine = np.cos(2 * np.pi * wind_direction / 360)
 
-# Convert Inputs
-wind_dir_sine = np.sin(2 * np.pi * wind_direction / 360 )
-wind_dir_cosine = np.cos(2 * np.pi * wind_direction / 360 )
-
-# Define input in dictionary format
+# Create input dataframe
 input_dict = {
     'distance-to-solar-noon': [dist],
     'temperature': [temp],
@@ -54,20 +59,21 @@ input_dict = {
     'wind_dir_sin': [wind_dir_sine],
     'wind_dir_cos': [wind_dir_cosine]
 }
-
-# Convert to DataFrame
 input_df = pd.DataFrame(input_dict)
 
-# Predict Button with Loading Animation
+# Predict Button
 if st.button("🔍 Predict Power Generated"):
     with st.spinner("Analyzing environment data..."):
-        time.sleep(2)  # Short delay for loading animation
+        time.sleep(2)
         prediction = model.predict(input_df)
-
-    # Display Prediction
     pred = abs(prediction[0])
     st.success(f"⚡ Estimated Power Output: **{pred:.2f} J**")
 
 # Footer
 st.markdown("---")
-st.markdown("<h5 style='text-align:center;'>Do Visit Us Again ❤️</h5>", unsafe_allow_html=True)
+st.markdown("""
+    <div style='text-align: center; font-size: 16px;'>
+        ❤️ Thank you for using the Solar Power Predictor App!
+    </div>
+""", unsafe_allow_html=True)
+
